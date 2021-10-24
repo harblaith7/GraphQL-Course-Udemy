@@ -1,25 +1,26 @@
+import { Context } from "../../index";
 import validator from "validator";
 import bcrypt from "bcryptjs";
 import JWT from "jsonwebtoken";
-import { Context } from "../..";
+import { JSON_SIGNATURE } from "../../keys";
 
-interface SignupArgsTypes {
+interface SignupArgs {
   credentials: {
     email: string;
     password: string;
   };
+  name: string;
   bio: string;
-  name?: string;
 }
 
-interface SigninArgsTypes {
+interface SigninArgs {
   credentials: {
     email: string;
     password: string;
   };
 }
 
-interface AuthPayload {
+interface UserPayload {
   userErrors: {
     message: string;
   }[];
@@ -29,62 +30,57 @@ interface AuthPayload {
 export const authResolvers = {
   signup: async (
     _: any,
-    { credentials, name, bio }: SignupArgsTypes,
+    { credentials, name, bio }: SignupArgs,
     { prisma }: Context
-  ): Promise<AuthPayload> => {
+  ): Promise<UserPayload> => {
     const { email, password } = credentials;
 
     const isEmail = validator.isEmail(email);
-    const isValidPassword = validator.isLength(password, {
-      min: 5,
-    });
 
     if (!isEmail) {
       return {
         userErrors: [
           {
-            message: "Email is invalid",
+            message: "Invalid email",
           },
         ],
         token: null,
       };
     }
+
+    const isValidPassword = validator.isLength(password, {
+      min: 5,
+    });
 
     if (!isValidPassword) {
       return {
         userErrors: [
           {
-            message: "Password is invalid",
+            message: "Invalid password",
           },
         ],
         token: null,
       };
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
-
-    if (existingUser) {
+    if (!name || !bio) {
       return {
-        userErrors: [{ message: "User with email already exists" }],
+        userErrors: [
+          {
+            message: "Invalid name or bio",
+          },
+        ],
         token: null,
       };
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const token = await JWT.sign({ email }, "fbuywfvy213fv32f23iuf32g32g23", {
-      expiresIn: 360000,
-    });
-
     const user = await prisma.user.create({
       data: {
         email,
-        password: hashedPassword,
         name,
+        password: hashedPassword,
       },
     });
 
@@ -97,14 +93,22 @@ export const authResolvers = {
 
     return {
       userErrors: [],
-      token,
+      token: JWT.sign(
+        {
+          userId: user.id,
+        },
+        JSON_SIGNATURE,
+        {
+          expiresIn: 3600000,
+        }
+      ),
     };
   },
   signin: async (
     _: any,
-    { credentials }: SigninArgsTypes,
+    { credentials }: SigninArgs,
     { prisma }: Context
-  ): Promise<AuthPayload> => {
+  ): Promise<UserPayload> => {
     const { email, password } = credentials;
 
     const user = await prisma.user.findUnique({
@@ -131,8 +135,8 @@ export const authResolvers = {
 
     return {
       userErrors: [],
-      token: JWT.sign({ email }, "fbuywfvy213fv32f23iuf32g32g23", {
-        expiresIn: 360000,
+      token: JWT.sign({ userId: user.id }, JSON_SIGNATURE, {
+        expiresIn: 3600000,
       }),
     };
   },

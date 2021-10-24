@@ -1,20 +1,19 @@
-import createError from "http-errors";
 import { Context } from "..";
 
-interface UserCanMutatePostParams {
+interface CanUserMutatePostParams {
+  userId: number;
+  postId: number;
   prisma: Context["prisma"];
-  email: string;
-  id: string;
 }
 
-export const userCanMutatePost = async ({
-  email,
+export const canUserMutatePost = async ({
+  userId,
+  postId,
   prisma,
-  id,
-}: UserCanMutatePostParams) => {
+}: CanUserMutatePostParams) => {
   const user = await prisma.user.findUnique({
     where: {
-      email,
+      id: userId,
     },
   });
 
@@ -31,7 +30,7 @@ export const userCanMutatePost = async ({
 
   const post = await prisma.post.findUnique({
     where: {
-      id: Number(id),
+      id: postId,
     },
   });
 

@@ -1,32 +1,24 @@
-import { gql } from "apollo-server-core";
+import { gql } from "apollo-server";
 
 export const typeDefs = gql`
   type Query {
     me: User
-    profile(email: String!): Profile
-    posts(skip: Int!, take: Int!): [Post!]!
+    posts: [Post!]!
+    profile(userId: ID!): Profile
   }
 
   type Mutation {
-    signup(
-      credentials: CredentialsInput!
-      bio: String!
-      name: String!
-    ): AuthPayload!
-    signin(credentials: CredentialsInput!): AuthPayload!
     postCreate(post: PostInput!): PostPayload!
     postUpdate(postId: ID!, post: PostInput!): PostPayload!
+    postDelete(postId: ID!): PostPayload!
     postPublish(postId: ID!): PostPayload!
     postUnpublish(postId: ID!): PostPayload!
-    postDelete(postId: ID!): Boolean!
-  }
-
-  type User {
-    id: ID!
-    name: String
-    email: String!
-    posts: [Post!]!
-    profile: Profile!
+    signup(
+      credentials: CredentialsInput!
+      name: String!
+      bio: String!
+    ): AuthPayload!
+    signin(credentials: CredentialsInput!): AuthPayload!
   }
 
   type Post {
@@ -38,15 +30,22 @@ export const typeDefs = gql`
     user: User!
   }
 
+  type User {
+    id: ID!
+    name: String!
+    email: String!
+    posts: [Post!]!
+  }
+
   type Profile {
     id: ID!
     bio: String!
+    isMyProfile: Boolean!
     user: User!
   }
 
-  type AuthPayload {
-    userErrors: [UserError!]!
-    token: String
+  type UserError {
+    message: String!
   }
 
   type PostPayload {
@@ -54,17 +53,18 @@ export const typeDefs = gql`
     post: Post
   }
 
-  type UserError {
-    message: String!
-  }
-
-  input CredentialsInput {
-    email: String!
-    password: String!
+  type AuthPayload {
+    userErrors: [UserError!]!
+    token: String
   }
 
   input PostInput {
     title: String
     content: String
+  }
+
+  input CredentialsInput {
+    email: String!
+    password: String!
   }
 `;

@@ -1,49 +1,41 @@
-import { ApolloServer } from "apollo-server-express";
-import express from "express";
-import { Query, Mutation, Profile, User, Post } from "./resolver";
+import { ApolloServer } from "apollo-server";
 import { typeDefs } from "./schema";
-
+import { Query, Mutation, Profile, Post, User } from "./resolvers";
 import { PrismaClient, Prisma } from "@prisma/client";
-import { getUser } from "./utils";
+import { getUserFromToken } from "./utils/getUserFromToken";
 
 export const prisma = new PrismaClient();
+
 export interface Context {
   prisma: PrismaClient<
     Prisma.PrismaClientOptions,
     never,
     Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
   >;
-  userInfo: { email: string } | null;
+  userInfo: {
+    userId: number;
+  } | null;
 }
 
-const main = async () => {
-  const resolvers = {
+const server = new ApolloServer({
+  typeDefs,
+  resolvers: {
     Query,
     Mutation,
     Profile,
-    User,
     Post,
-  };
+    User,
+  },
+  context: async ({ req }: any): Promise<Context> => {
+    const userInfo = await getUserFromToken(req.headers.authorization);
 
-  const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-    context: async ({ req }: any): Promise<Context> => {
-      const userInfo = await getUser(req.headers.authorization);
-      return {
-        prisma,
-        userInfo,
-      };
-    },
-  });
+    return {
+      prisma,
+      userInfo,
+    };
+  },
+});
 
-  const app = express();
-  await server.start();
-  server.applyMiddleware({ app });
-
-  app.listen({ port: 4001 }, () =>
-    console.log("Now browse to http://localhost:4000" + server.graphqlPath)
-  );
-};
-
-main();
+server.listen().then(({ url }) => {
+  console.log(`Server ready on ${url}`);
+});

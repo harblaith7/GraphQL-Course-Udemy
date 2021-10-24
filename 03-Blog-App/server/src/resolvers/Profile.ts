@@ -1,13 +1,13 @@
 import { Context } from "..";
 
-interface ProfileType {
+interface ProfileParentType {
   id: number;
   bio: string;
   userId: number;
 }
 
 export const Profile = {
-  user: async (parent: ProfileType, __: any, { prisma }: Context) => {
+  user: (parent: ProfileParentType, __: any, { userInfo, prisma }: Context) => {
     return prisma.user.findUnique({
       where: {
         id: parent.userId,

@@ -1,21 +1,23 @@
 import { Context } from "..";
 
-interface UserType {
+interface UserParentType {
   id: number;
-  email: string;
-  name: string;
 }
 
 export const User = {
-  posts: async (parent: UserType, __: any, { prisma, userInfo }: Context) => {
-    const isOwnProfile = parent.email === userInfo?.email;
+  posts: (parent: UserParentType, __: any, { userInfo, prisma }: Context) => {
+    const isOwnProfile = parent.id === userInfo?.userId;
 
     if (isOwnProfile) {
       return prisma.post.findMany({
         where: {
           authorId: parent.id,
         },
-        orderBy: [{ createdAt: "desc" }],
+        orderBy: [
+          {
+            createdAt: "desc",
+          },
+        ],
       });
     } else {
       return prisma.post.findMany({
@@ -23,7 +25,11 @@ export const User = {
           authorId: parent.id,
           published: true,
         },
-        orderBy: [{ createdAt: "desc" }],
+        orderBy: [
+          {
+            createdAt: "desc",
+          },
+        ],
       });
     }
   },

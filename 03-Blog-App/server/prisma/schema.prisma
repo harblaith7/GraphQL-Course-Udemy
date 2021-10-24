@@ -1,51 +1,42 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model Post {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String   @db.VarChar(255)
-  content   String?
-  published Boolean  @default(false)
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
-  comments  Comment[] 
-}
-
-model Comment {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int        @id @default(autoincrement())
+  title     String
   content   String
-  author    User     @relation(fields: [authorId], references: [id])
+  published Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   authorId  Int
-  post      Post     @relation(fields: [postId], references: [id])
-  postId    Int
-}
-
-model Profile {
-  id        Int     @id @default(autoincrement())
-  bio       String?
-  user      User    @relation(fields: [userId], references: [id])
-  userId    Int     @unique
+  author    User      @relation(fields: [authorId], references: [id])
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
   name      String?
   password  String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   posts     Post[]
-  comments  Comment[]
   profile   Profile?
+}
+
+model Profile {
+    id        Int        @id @default(autoincrement())
+    bio       String
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
+    userId    Int        @unique
+    user      User       @relation(fields: [userId], references: [id])
 }
