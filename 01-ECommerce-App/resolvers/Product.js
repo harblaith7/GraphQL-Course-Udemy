@@ -1,8 +1,8 @@
 exports.Product = {
-  category: (parent, args, { categories }, info) => {
-    return categories.find((category) => parent.categoryId === category.id);
+  category: ({ categoryId }, args, { db }) => {
+    return db.categories.find((category) => category.id === categoryId);
   },
-  reviews: (parent, args, { reviews }, info) => {
-    return reviews.filter((review) => review.productId === parent.id);
+  reviews: ({ id }, args, { db }) => {
+    return db.reviews.filter((review) => review.productId === id);
   },
 };

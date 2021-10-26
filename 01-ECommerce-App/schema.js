@@ -1,40 +1,98 @@
-const { gql } = require("apollo-server-core");
+const { gql } = require("apollo-server");
 
 exports.typeDefs = gql`
+  type Query {
+    hello: String
+    products(filter: ProductsFilterInput): [Product!]!
+    product(id: ID!): Product
+    categories: [Category!]!
+    category(id: ID!): Category
+  }
+
+  type Mutation {
+    addCategory(input: AddCategoryInput!): Category!
+    addProduct(input: AddProductInput!): Product!
+    addReview(input: AddReviewInput!): Review!
+    deleteCategory(id: ID!): Boolean!
+    deleteProduct(id: ID!): Boolean!
+    deleteReview(id: ID!): Boolean!
+    updateCategory(id: ID!, input: UpdateCategoryInput!): Category
+    updateProduct(id: ID!, input: UpdateProductInput!): Product
+    updateReview(id: ID!, input: UpdateReviewInput!): Review
+  }
+
   type Product {
-    id: Int!
+    id: ID!
     name: String!
     description: String!
     quantity: Int!
-    price: Float!
     image: String!
+    price: Float!
     onSale: Boolean!
-    category: Category!
+    category: Category
     reviews: [Review!]!
   }
 
+  type Category {
+    id: ID!
+    name: String!
+    products(filter: ProductsFilterInput): [Product!]!
+  }
+
   type Review {
-    id: Int!
+    id: ID!
     date: String!
     title: String!
     comment: String!
     rating: Int!
   }
 
-  type Category {
-    id: Int!
+  input ProductsFilterInput {
+    onSale: Boolean
+    avgRating: Int
+  }
+
+  input AddCategoryInput {
     name: String!
-    products: [Product!]!
   }
 
-  type Query {
-    products(filter: filter): [Product!]!
-    product(id: Int!): Product!
-    categories: [Category!]!
-    category(id: Int!): Category!
+  input UpdateCategoryInput {
+    name: String!
   }
 
-  input filter {
+  input AddProductInput {
+    name: String!
+    description: String!
+    quantity: Int!
+    image: String!
+    price: Float!
+    onSale: Boolean!
+    categoryId: String
+  }
+
+  input UpdateProductInput {
+    name: String!
+    description: String!
+    quantity: Int!
+    image: String!
+    price: Float!
+    onSale: Boolean!
+    categoryId: String
+  }
+
+  input AddReviewInput {
+    date: String!
+    title: String!
+    comment: String!
     rating: Int!
+    productId: ID!
+  }
+
+  input UpdateReviewInput {
+    date: String!
+    title: String!
+    comment: String!
+    rating: Int!
+    productId: ID!
   }
 `;
