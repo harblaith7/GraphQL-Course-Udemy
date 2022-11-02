@@ -21,7 +21,7 @@ exports.Query = {
           });
           const avgProductRating = sumRating / numberOfReviews;
 
-          return avgProductRating >= avgRating;
+          return avgProductRating >= avgRating/5; // You Need a division by 5 here
         });
       }
     }
